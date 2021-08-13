@@ -11,7 +11,6 @@ import torch
 from collections import Counter
 from datetime import datetime
 from joblib import Parallel, delayed
-from log_calls import record_history
 from pandas import DataFrame
 from tqdm import tqdm
 
@@ -612,7 +611,6 @@ class TabularAutoML(AutoMLPreset):
         return grid, ys, counts
 
 
-@record_history(enabled=False)
 class TabularUtilizedAutoML(TimeUtilization):
     """Template to make TimeUtilization from TabularAutoML."""
 
