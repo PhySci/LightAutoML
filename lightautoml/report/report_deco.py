@@ -575,7 +575,7 @@ class ReportDeco:
         self._describe_dropped_features(train_data)
         self._generate_train_set_section()
         # generate fit_predict section
-        self._generate_inference_section(data)
+        self._generate_inference_section()
         # generate feature importance and interpretation sections
         self._generate_fi_section(valid_data)
         if self.interpretation:
@@ -654,10 +654,7 @@ class ReportDeco:
         # update model section
         self._generate_model_section()
         # generate predict section
-        self._generate_inference_section(data)
-        # generate interpretation sections (if not created on fit_predict stage)
-        if self.interpretation and self._interpretation_top == []:
-            self._generate_interpretation_section(test_data)
+        self._generate_inference_section()
         
         self.generate_report()
         return test_preds
@@ -691,6 +688,9 @@ class ReportDeco:
     
     def _generate_interpretation_content(self, test_data):
         self._interpretation_content = {}
+        if test_data is None:
+            self._interpretation_content['interpretation_top'] = None
+            return
         if self.feat_imp is None:
             interpretation_feat_list = list(self._model.reader._roles.keys())[:self.interpretation_params['top_n_features']]
         else:
@@ -708,9 +708,7 @@ class ReportDeco:
         
     
     def _generate_interpretation_section(self, test_data):
-        if test_data is None:
-            return
-        elif test_data.shape[0] > self.interpretation_params['n_sample']:
+        if test_data is not None and test_data.shape[0] > self.interpretation_params['n_sample']:
             test_data = test_data.sample(n=self.interpretation_params['n_sample'])
         self._generate_interpretation_content(test_data)
         env = Environment(loader=FileSystemLoader(searchpath=self.template_path))
@@ -720,7 +718,6 @@ class ReportDeco:
     
     def _plot_pdp(self, test_data, feature_name, path):
         feature_role = self._model.reader._roles[feature_name].name
-        
         # I. Count interpretation
         print('Calculating interpretation for {}:'.format(feature_name))
         grid, ys, counts = self._model.get_individual_pdp(test_data=test_data,
@@ -728,12 +725,10 @@ class ReportDeco:
                                                           n_bins=self.interpretation_params['n_bins'], 
                                                           top_n_categories=self.interpretation_params['top_n_categories'], 
                                                           datetime_level=self.interpretation_params['datetime_level'])
-        
         # II. Plot pdp
         sns.set(style="whitegrid", font_scale=1.5)
         fig, axs = plt.subplots(2, 1, figsize=(16, 12), gridspec_kw={'height_ratios': [3, 1]})
         axs[0].set_title('PDP plot: ' + feature_name);
-        
         n_classes = ys[0].shape[1]
         if n_classes == 1:
             data = pd.concat([pd.DataFrame({'x': grid[i], 'y': ys[i].ravel()}) for i, _ in enumerate(grid)])
@@ -752,7 +747,6 @@ class ReportDeco:
             else:
                 g0 = sns.boxplot(data=data, x="x", y="y", hue='class', ax=axs[0], showfliers=False)
         g0.set(ylabel='y_pred');
-        
         # III. Plot distribution
         counts = np.array(counts) / sum(counts)
         if feature_role == 'Numeric':
@@ -765,11 +759,9 @@ class ReportDeco:
         else:
             g0.set(xlabel=self.interpretation_params['datetime_level']);
             g1 = sns.barplot(x=grid, y=counts, ax=axs[1], color='gray')
-            
         g1.set(xlabel=None)
         g1.set(ylabel='Frequency');
         g1.set(xticklabels=[]);
-        
         # IV. Save picture
         plt.tight_layout()
         fig.savefig(path, bbox_inches='tight');
@@ -892,7 +884,7 @@ class ReportDeco:
         )
         self._sections['train_set'] = train_set_section
 
-    def _generate_inference_section(self, data):
+    def _generate_inference_section(self):
         env = Environment(loader=FileSystemLoader(searchpath=self.template_path))
         inference_section = env.get_template(self._inference_section_path[self.task]).render(self._inference_content)
         self._model_results.append(inference_section)
