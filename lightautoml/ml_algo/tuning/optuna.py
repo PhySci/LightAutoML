@@ -14,14 +14,10 @@ from typing import Union
 
 import optuna
 
-from numpy.lib.twodim_base import tri
-
 from lightautoml.dataset.base import LAMLDataset
 from lightautoml.ml_algo.base import MLAlgo
 from lightautoml.ml_algo.tuning.base import Distribution
 from lightautoml.ml_algo.tuning.base import ParamsTuner
-from lightautoml.ml_algo.tuning.base import SearchSpace
-from lightautoml.pipelines import ml
 from lightautoml.validation.base import HoldoutIterator
 from lightautoml.validation.base import TrainValidIterator
 
