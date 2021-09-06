@@ -91,7 +91,6 @@ def test_manual_pipeline():
     selector_iterator = FoldsIterator(pd_dataset, 1)
     logging.debug("Selection iterator created")
 
-    model = BoostLGBM()
     pipe = LGBSimpleFeatures()
     logging.debug("Pipe and model created")
 

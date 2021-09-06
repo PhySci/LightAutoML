@@ -530,7 +530,7 @@ class L2XTextExplainer:
         loss = self._loss
         optimizer = self.optimizer(model.parameters(), **self.optim_params)
         model.to(self.train_device)
-        best_iter = -1
+        prev_best = -1
         best_loss = torch.finfo(float).max
         gamma = self.gamma
 

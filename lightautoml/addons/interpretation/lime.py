@@ -302,13 +302,13 @@ class LimeTextExplainer:
         self.distance_metric = distance_metric
 
         class_names = automl.reader.class_mapping
-        if class_names == None:
+        if class_names is None:
             if self.task_name == "reg":
                 class_names = [0]
             else:
                 class_names = np.arange(automl.reader._n_classes)
         else:
-            class_names = list(class_mapping.values())
+            class_names = list(class_names.values())
 
         self.class_names = class_names
 
